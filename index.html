@@ -244,7 +244,28 @@
 	<script type="text/javascript" src="jquery-cookie.js"></script>
 
     <script type="text/javascript">
-        var currentWeek = 5; // i know, need to be fixed.
+
+	// Credit: http://stackoverflow.com/questions/7765767/show-week-number-with-javascript
+	Date.prototype.getWeek = function() {
+		var onejan = new Date(this.getFullYear(), 0, 1);
+		return Math.ceil((((this - onejan) / 86400000) + onejan.getDay() + 1) / 7);
+	}
+
+	var d = new Date();
+        var currentWeek = d.getWeek();
+
+	// Show the next week if we're in the weekend. (6 -> Saterday. Sunday is already the next week)
+	if(d.getDay() == 6) {
+	    //console.log("Old stuff", currentWeek);
+	    d.setDate(d.getDate() + 7); // Add one week
+	    currentWeek = d.getWeek();
+	    //console.log("Added stuff", currentWeek);
+	}
+	console.log(currentWeek, d.getDay());
+
+	// Set the select element for the weeks to the correct week. 
+	// The client only sees it after they click something, so they shouldn't see the value change when loading. 
+	$('#week').val(currentWeek);
 
         // OnLoad
         if($.cookie('roosterClassNr')) {
@@ -304,14 +325,22 @@
 
                         var color;
                         var locatie;
+			var staff = "";
 
                         if(b.facilities.length == 0) 
-                        { color = "#CCCCCC"; locatie=''; }else{ locatie = b.facilities[0]+' - '; color = getColor(b.facilities[0]); }
+                        { color = "#CCCCCC"; locatie=''; }else{ locatie = b.facilities[0]; color = getColor(b.facilities[0]); }
 
+			if(b.staffs.length > 0) {
+				staff = b.staffs[0];
+			}
+
+			if(b.facilities.length > 0 && b.staffs.length > 0) {
+				locatie += " - ";
+			}
 
                         var out  = '<div style="border-left-color: '+color+'; height:'+(height-1)+'px; left:'+((k*167)+150)+'px; top:'+(51+(start-8.5)*100)+'px" class="lesson">';
                             out += '<span class="lesson-name">'+b.description+'</span><br>';
-                            out += '<span>'+locatie+'</span><span class="teacher">'+b.staffs[0]+'</span>';
+                            out += '<span>'+locatie+'</span><span class="teacher">'+staff+'</span>';
                             out += '</div>';
 
                         $('.container').append(out);
