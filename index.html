@@ -254,14 +254,18 @@
 	var d = new Date();
         var currentWeek = d.getWeek();
 
-	// Show the next week if we're in the weekend. (6 -> Saterday. Sunday is already the next week)
+	console.log("CurrentWeek:\t%d\nDay of week:\t%d.", d.getWeek(), d.getDay());
+
+	// Show the next week if we're in the weekend. (6 -> Saturday. Sunday is already the next week)
 	if(d.getDay() == 6) {
-	    //console.log("Old stuff", currentWeek);
-	    d.setDate(d.getDate() + 7); // Add one week
+	    console.log("CurrentWeek pre change: ", currentWeek);
+	    // Add one week. 
+	    // Don't add seven days because Saturday might also be the next week already
+	    //  (according to the getWeek function above).
+	    d.setDate(d.getDate() + 3); 
 	    currentWeek = d.getWeek();
-	    //console.log("Added stuff", currentWeek);
+	    console.log("CurrentWeek post change:", currentWeek);
 	}
-	console.log(currentWeek, d.getDay());
 
 	// Set the select element for the weeks to the correct week. 
 	// The client only sees it after they click something, so they shouldn't see the value change when loading. 
