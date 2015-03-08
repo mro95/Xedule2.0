@@ -10,12 +10,12 @@
 <body>
     <header>
         <div style="display:inline-block;vertical-align:middle;height:40px;"></div>
-        <span id="navicon-header" class="ion-navicon-round" style="position:absolute; top:3px;color: #FFF;font-size: 18pt;cursor:pointer;"> Xedule 2.0</span>
+        <a id="navicon-header" class="ion-navicon-round" style="position:absolute; top:3px;color: #FFF;font-size: 18pt;cursor:pointer;"> Xedule 2.0</a>
     </header>
 
     <div class="sidebar">
         <div class="header">
-            <span id="close-sidebar" class="ion-close-round" style="color: #FFF;font-size: 10pt;padding-left: 320px;cursor:pointer;"></span>
+            <a id="close-sidebar" class="ion-close-round" style="color: #FFF;font-size: 10pt;padding-left: 320px;cursor:pointer;"></a>
             <span class="title"><i class="ion-gear-a"></i> Settings</span>
         </div>
         <div class="content">
@@ -299,22 +299,46 @@
 		// Fill the week select box.
 		// The client only sees it after they click something, so they shouldn't see the value change when loading. 
 		var append;
-		for(var i = 1; i <= currentWeek+1; i++) {
-			// Because of currentWeek+1;
-			if(i > 52) {
-				break;
-			}
 
-			append += "<option value='" + i + "'>" + currentYear + "/" + i + "</option>";
+		var tempYr = currentYear;
+		var tempI;
+		for(var i = currentWeek+1; i > -52; i--) {
+			// Because of currentWeek+1;
+			/*if(i > 52) {
+				break;
+			}*/
+			if(i < 1 && tempYr == currentYear) {
+				tempYr--;
+			}
+			tempI = (i < 1) ? (i - 52 * -1) : i
+			append += "<option value='" + tempYr + ":" + tempI + "'>" + tempYr + " / " + ((tempI < 10) ? "0" : "") + tempI + "</option>";
+			if(i == 1) {
+				append += "<option disabled>-</option>";
+			}
 		}
 		$('#week').append(append);
 
+		// Week to initially show after load
+		var weekToShow = currentWeek;
+		var yearToShow = currentYear;
+		var hash = window.location.hash.substring(1).split("/"); // Substring removed the hash sign. 
+		if(hash.length > 2 && parseInt(hash[1]) != 0) {
+			yearToShow = parseInt(hash[1]);
+			if(parseInt(hash[2]) != 0){
+				weekToShow = parseInt(hash[2]);
+			}
+		}
+
 		// Set the select element for the weeks to the correct week. 
-		$('#week').val(currentWeek);
+		$('#week').val(yearToShow + ":" + weekToShow);
 
 		// OnLoad
-		if($.cookie('roosterClassNr')) {
-		    refeshRooster($.cookie('roosterClassNr'), '2015', currentWeek);
+		if(hash[0] != "") {
+			refeshRooster(hash[0], yearToShow, weekToShow);
+			$('#classNr').val(hash[0]);
+		} else if($.cookie('roosterClassNr')) {
+			refeshRooster($.cookie('roosterClassNr'), yearToShow, weekToShow);
+		 	$('#classNr').val($.cookie('roosterClassNr'));
 		}
 
 		$('#navicon-header').click(function() {
@@ -327,16 +351,16 @@
 
 		$('#send-setting').click(function() {
 		    var classNr = $('#classNr').val();
-		    var week = $('#week').val();
+		    var week = $('#week').val().split(":");
 		    $.cookie('roosterClassNr', classNr);
 		    if($('.lesson').length != 0) {
 			$('.lesson').fadeOut('400');
 			setTimeout(function() {
 			    $('.lesson').remove();
-			    refeshRooster(classNr, '2015', week);
+			    refeshRooster(classNr, week[0], week[1]);
 			}, 400);
 		    }else{
-			refeshRooster(classNr, '2015', week);
+			refeshRooster(classNr, week[0], week[1]);
 		    }
 		});
 
@@ -400,6 +424,8 @@
 			}
 			$('table thead tr td:nth-child(2)').html(year + "/" + week);
 			$('.lesson').fadeIn('400');
+			window.location.hash = classNr + "/" + year + "/" + ((week == currentWeek) ? 0 : week);
+			document.title = document.title.split(" - ")[0] + " - " + $("#classNr option[value='" + classNr + "']").text() + " - " + year + "/" + week;
 		    });
 		};
 
